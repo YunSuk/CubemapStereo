@@ -26,14 +26,18 @@ public class StereoCubemap : MonoBehaviour {
 	private Transform OVRCamRig,OVRPlayer;
 
 	private Texture2D[] screenShot;
-
+	private RenderTexture[] renderTextures;
 
 	void PlaneInit(){
-		screenShot = new Texture2D[6];
+		screenShot = new Texture2D[10];
 		for (int i=0; i<screenShot.Length; i++) {
 			screenShot[i]=new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
 		}
-			
+		renderTextures = new RenderTexture[10];
+		for (int i=0; i<renderTextures.Length; i++) {
+			renderTextures[i]=new RenderTexture(resWidth, resHeight, 24);
+		}
+
 		planes = new GameObject[10];
 		for (int i=0; i<planes.Length; i++) {
 			planes[i]=GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -46,7 +50,9 @@ public class StereoCubemap : MonoBehaviour {
 			r.useLightProbes=false;
 			r.reflectionProbeUsage=ReflectionProbeUsage.Off;
 			r.material.shader=Shader.Find("Unlit/Texture");
-				string name;
+			r.material.mainTexture=renderTextures[i];
+
+			string name;
 			if(i<4){
 				name="L";
 				planes[i].layer=14;
@@ -139,11 +145,11 @@ public class StereoCubemap : MonoBehaviour {
 			cL.cullingMask = 0x00001fff;
 			cR.cullingMask = 0x00001fff;
 
-			cL.enabled = false;
-			cR.enabled = false;
+			cL.enabled = true;
+			cR.enabled = true;
 
-			cL.targetTexture=new RenderTexture(resWidth, resHeight, 24);
-			cR.targetTexture=new RenderTexture(resWidth, resHeight, 24);
+			cL.targetTexture=renderTextures[i];
+			cR.targetTexture=renderTextures[i+4];
 
 			angle+=90;
 		}
@@ -170,9 +176,9 @@ public class StereoCubemap : MonoBehaviour {
 
 			c.cullingMask = 0x00001fff;
 
-			c.enabled = false;
+			c.enabled = true;
 
-			c.targetTexture=new RenderTexture(resWidth, resHeight, 24);
+			c.targetTexture=renderTextures[i+8];
 
 			angle+=180;
 		}
@@ -305,24 +311,24 @@ public class StereoCubemap : MonoBehaviour {
 				go=CameraR;
 				//planeType="R";
 			}
-			for (int i=1; i<=4; i++) {
-				c=go[i-1].GetComponent<Camera> ();
+			for (int i=0; i<4; i++) {
+				c=go[i].GetComponent<Camera> ();
 				//take screenshot for horizontal surrounding
 				//Texture2D screenShot = new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
 
-				c.Render();
-				RenderTexture.active = c.targetTexture;
-				screenShot[i-1].ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
-				screenShot[i-1].Apply();
+				//c.Render();
+				/*RenderTexture.active = c.targetTexture;
+				screenShot[i+4*e].ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
+				screenShot[i+4*e].Apply();
 				RenderTexture.active = null; // JC: added to avoid errors
 				//Transform plane=transform.Find("Plane"+i+planeType);
 				//plane.localScale=new Vector3(focal_length*2,1,focal_length*2);
 				//Renderer r=plane.gameObject.GetComponent<Renderer>();
-				Renderer r=planes[i-1+4*e].GetComponent<Renderer>();
+				Renderer r=planes[i+4*e].GetComponent<Renderer>();
 
 				//Destroy(r.material.mainTexture);
-				r.material.mainTexture = screenShot[i-1];
-
+				r.material.mainTexture = screenShot[i+4*e];
+*/
 			}
 		}
 		go = CameraC;
@@ -331,10 +337,10 @@ public class StereoCubemap : MonoBehaviour {
 			//take screenshot for top and bottom
 			//Texture2D screenShot = new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
 
-			c.Render();
-			RenderTexture.active = c.targetTexture;
-			screenShot[i-1].ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
-			screenShot[i-1].Apply();
+			//c.Render();
+			/*RenderTexture.active = c.targetTexture;
+			screenShot[i+3].ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
+			screenShot[i+3].Apply();
 			RenderTexture.active = null; // JC: added to avoid errors
 			//Transform plane=transform.Find("Plane"+i);
 			//plane.localScale=new Vector3(focal_length*2,1,focal_length*2);
@@ -342,9 +348,9 @@ public class StereoCubemap : MonoBehaviour {
 			Renderer r= planes[i+3].GetComponent<Renderer>();
 
 			//Destroy(r.material.mainTexture);
-			r.material.mainTexture = screenShot[i-1];
-
+			r.material.mainTexture = screenShot[i+3];
+*/
 		}
-		Resources.UnloadUnusedAssets();
+//		Resources.UnloadUnusedAssets();
 	}
 }
