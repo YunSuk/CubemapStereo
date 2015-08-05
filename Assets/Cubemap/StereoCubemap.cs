@@ -11,7 +11,7 @@ public class StereoCubemap : MonoBehaviour {
 	public GameObject[] CameraR;	//for right eye surround scene
 	public GameObject[] CameraC;	//for top and bottom view (no stereo)
 
-	public float eyeSep=1f,near=0.1f,far=10000f,focal_length=50f,aperture=90f;
+	public float eyeSep=0.064f,near=0.1f,far=10000f,focal_length=10f,aperture=90f;
 
 	public int resWidth=1920,resHeight=1920;
 
@@ -108,7 +108,6 @@ public class StereoCubemap : MonoBehaviour {
 				break;
 			}
 		}
-
 	}
 
 	void CameraInit(){
@@ -140,6 +139,15 @@ public class StereoCubemap : MonoBehaviour {
 
 			Camera cL=CameraL[i].GetComponent<Camera> ();
 			Camera cR=CameraR[i].GetComponent<Camera> ();
+
+			cL.aspect = 1;
+			cL.fieldOfView = 90;
+			cL.nearClipPlane = near;
+			cL.farClipPlane = far;
+			cR.aspect = 1;
+			cR.fieldOfView = 90;
+			cR.nearClipPlane = near;
+			cR.farClipPlane = far;
 
 
 			cL.cullingMask = 0x00001fff;
@@ -183,24 +191,25 @@ public class StereoCubemap : MonoBehaviour {
 			angle+=180;
 		}
 
-		if ((OVRCamRig= transform.Find ("OVRCameraRig")) != null) {
+
+		if ((OVRPlayer = transform.Find ("OVRPlayerController")) != null) {
+			OVRCamRig = OVRPlayer.Find ("OVRCameraRig");
+
+		} else {
 			OVRPlayer=null;
-			Transform track=OVRCamRig.Find ("TrackingSpace");
-			track.Find ("LeftEyeAnchor").gameObject.GetComponent<Camera> ().cullingMask = 0x00014000;
-			track.Find ("RightEyeAnchor").gameObject.GetComponent<Camera> ().cullingMask = 0x00018000;
 		}
-		if ((OVRPlayer=transform.Find ("OVRPlayerController")) != null) {
-			OVRCamRig=OVRPlayer.Find ("OVRCameraRig");
+		if (OVRCamRig!=null || (OVRCamRig= transform.Find ("OVRCameraRig")) != null) {
 			Transform track=OVRCamRig.Find ("TrackingSpace");
 			track.Find ("LeftEyeAnchor").gameObject.GetComponent<Camera> ().cullingMask = 0x00014000;
 			track.Find ("RightEyeAnchor").gameObject.GetComponent<Camera> ().cullingMask = 0x00018000;
+			track.Find ("CenterEyeAnchor").gameObject.GetComponent<AudioListener>().enabled=false;
 		}
 	}
 
 
 
 	void Start () {
-		Transform trans;
+
 		PlaneInit ();
 		CameraInit ();
 
@@ -251,7 +260,7 @@ public class StereoCubemap : MonoBehaviour {
 		for(int i=0;i<4;i++)
 			CameraR[i].GetComponent<Camera> ().projectionMatrix=mat;
 
-		UpdateCubeTexture ();
+		//UpdateCubeTexture ();
 		prePos = transform.position;
 	}
 	float getAngle(){
@@ -287,7 +296,7 @@ public class StereoCubemap : MonoBehaviour {
 		if (transform.position==prePos) {
 			return;
 		}
-		UpdateCubeTexture ();
+		//UpdateCubeTexture ();
 		prePos = transform.position;
 	}
 	void LateUpdate(){
@@ -316,7 +325,7 @@ public class StereoCubemap : MonoBehaviour {
 				//take screenshot for horizontal surrounding
 				//Texture2D screenShot = new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
 
-				//c.Render();
+				c.Render();
 				/*RenderTexture.active = c.targetTexture;
 				screenShot[i+4*e].ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
 				screenShot[i+4*e].Apply();
@@ -337,7 +346,7 @@ public class StereoCubemap : MonoBehaviour {
 			//take screenshot for top and bottom
 			//Texture2D screenShot = new Texture2D(resWidth, resHeight, TextureFormat.RGB24, false);
 
-			//c.Render();
+			c.Render();
 			/*RenderTexture.active = c.targetTexture;
 			screenShot[i+3].ReadPixels(new Rect(0, 0, resWidth, resHeight), 0, 0);
 			screenShot[i+3].Apply();
